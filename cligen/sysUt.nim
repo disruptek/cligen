@@ -17,13 +17,6 @@ proc delete*(x: var string, i: Natural) {.noSideEffect.} =
     x[j] = move x[j+1]
   setLen(x, xl-1)
 
-iterator maybePar*(parallel: bool, a, b: int): int =
-  ## if flag is true yield ``||(a,b)`` else ``countup(a,b)``.
-  if parallel:
-    for i in `||`(a, b): yield i
-  else:
-    for i in a .. b: yield i
-
 import core/macros
 
 proc incd*[T: Ordinal | uint | uint64](x: var T, amt=1): T {.inline.} =
