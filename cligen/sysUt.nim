@@ -26,36 +26,6 @@ iterator maybePar*(parallel: bool, a, b: int): int =
 
 import core/macros
 
-macro enumerate*(x: ForLoopStmt): untyped =
-  ## Generic enumerate macro; E.g.: ``for i,e in enumerate([3,2,1]): echo i``.
-  expectKind x, nnkForStmt
-  result = newStmtList()
-  result.add newVarStmt(x[0], newLit(0))
-  var body = x[^1]
-  if body.kind != nnkStmtList:
-    body = newTree(nnkStmtList, body)
-  body.add newCall(bindSym"inc", x[0])
-  var newFor = newTree(nnkForStmt)
-  for i in 1..x.len-3:
-    newFor.add x[i]
-  newFor.add x[^2][1]
-  newFor.add body
-  result.add newFor
-
-when (NimMajor,NimMinor,NimPatch) >= (0,20,0):
-  macro toItr*(x: ForLoopStmt): untyped =
-    ## Convert factory proc call for inline-iterator-like usage.
-    ## E.g.: ``for e in toItr myFactory(parm): echo e``.
-    let call = x[^2][1]                   # Get foo out of toItr(foo)
-    let itr  = ident"itr"                 # itr = genSym(ident="itr")
-    var tree = nnkForStmt.newTree         # for
-    for v in x[0 .. x.len-3]: tree.add v  # for v1,...
-    tree.add(nnkCall.newTree(itr), x[^1]) # for v1,... in itr(): body
-    result = quote do:
-      if true:
-        let `itr` {.inject.} = `call`
-        `tree`
-
 proc incd*[T: Ordinal | uint | uint64](x: var T, amt=1): T {.inline.} =
   ##Similar to prefix ``++`` in C languages: increment then yield value
   x.inc amt; x
